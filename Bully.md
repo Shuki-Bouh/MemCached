@@ -24,69 +24,49 @@ Prenons la situation suivante :
 ## 3
 
 Pour n processus numérotés de 0 à n-1 (qui est son process id).
+Chaque processus peut contacter tous les autres processus.
+Chaque processus a trois état : passif, actif et mort
 Initialement ils sont passifs.
 
-
-### Initialisation de l'éléction
-```
-etat_i = actif;
-Pour j € ]i, n[, 
-    send(<élection, i>)
-    
-Attente d'expiration ...
-Si aucun victory reçu :
-    send(<élu, i>)
-```
-
-### Réception d'un message élection
-
-```
-Si i > ireçu
-    etat_i = actif
-    Pour j € ]i, n[, 
-    send(<élection, i>)
-    
-    Attente d'expiration ...
-    Si aucun victory reçu :
-        send(<élu, i>)
-```
-
-### Réception d'un message élu
-
-```
-coordinateur = ireçu
-etat_i = passif
-```
-
-
-// Chaque processus a un identifiant unique (ID)
-// Un processus peut envoyer et recevoir des messages des autres processus
-// États possibles : Actif, Passif (crashé)
-
-// Fonction principale exécutée par chaque processus
-Processus(i) :
+### Fonction principale exécutée par chaque processus
+```Processus(i) :
 Si je détecte que le leader est inactif ou que je veux initier une élection :
 DémarrerElection()
+```
 
-// Démarrer une élection
+### L'élection
+```
 DémarrerElection() :
-Envoyer un message "Election" à tous les processus avec un ID supérieur
-Si aucun processus supérieur ne répond dans un délai donné :
-Je suis le leader
-Envoyer un message "Leader" à tous les autres processus
-Sinon :
-Attendre un message "OK" d’un processus avec un ID supérieur
-Si reçu, attendre un message "Leader"
-Si un leader ne se manifeste pas après un certain temps, redémarrer l'élection
+    etat_i = actif;
+    Pour j € ]i, n[, 
+        send(<élection, i>)
 
-// Réception d'un message "Election"
-RecevoirMessage("Election", de j) :
-Si mon ID est supérieur à j :
-Répondre avec "OK" à j
-DémarrerElection()
-Sinon :
-Ne rien faire (laisser un processus supérieur gérer l’élection)
+    Si aucun processus supérieur ne répond "Ok" dans un délai donné :
+        Je suis le leader :
+        
+        Pour j € [0, i[, 
+            send(<élu, i>)
+    
+    Sinon :
+        Si reçu, attendre un message "Leader"
+    Si un leader ne se manifeste pas après un certain temps, redémarrer l'élection
+```
 
-// Réception d'un message "Leader"
-RecevoirMessage("Leader", de j) :
-Mettre à jour mon état : leader = j
+### Réception d'un message "Election" pour un process i
+```
+    RecevoirMessage("élection", de j) :
+    Si i > j :
+        send("Ok", à j)
+    DémarrerElection()
+        Sinon :
+        Ne rien faire (laisser un processus supérieur gérer l’élection)
+```    
+
+### Réception d'un message "Leader" d'un processus i
+```
+    RecevoirMessage("Leader", de j) :
+    leader = j
+```
+
+
+
