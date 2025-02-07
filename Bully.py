@@ -2,6 +2,7 @@ import threading
 from time import time
 
 class BullyProcess(threading.Thread):
+    clock_max = 5
     def __init__(self, process_id, processes):
         super().__init__(target=self.process_messages)
         self.process_id = process_id
@@ -42,9 +43,9 @@ class BullyProcess(threading.Thread):
                         self.leader = sender.process_id  # Le nouveau leader est donc le sender.
                     elif "Alive" in message:  # Le leader envoie Alive, on check qu'on reçoit bien ce message, autrement
                         self.clock = 0  # On lance une nouvelle élection.
-                if self.clock > 5 and not self.en_election:  # Si 5 secondes se sont écoulées, on considère le leader comme mort
+                if self.clock > BullyProcess.clock_max and not self.en_election:  # Si 5 secondes se sont écoulées, on considère le leader comme mort
                     self.election() # On lance une nouvelle élection
-                elif self.clock > 5 and not self.en_election:  # On est en élection et on est en attente d'un "Ok", si 5 secondes sont dépassés, on est élu.
+                elif self.clock > BullyProcess.clock_max and self.en_election:  # On est en élection et on est en attente d'un "Ok", si 5 secondes sont dépassés, on est élu.
                     self.elu()
                 if self.leader == self.process_id:
                     self.alive_message()  # Si on est le leader, on envoie un message pour dire qu'on est toujours vivant
