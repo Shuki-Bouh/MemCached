@@ -1,5 +1,6 @@
 import threading
-from time import time
+from time import time, sleep
+import random
 
 class BullyProcess(threading.Thread):
     clock_max = 5
@@ -71,3 +72,20 @@ class BullyProcess(threading.Thread):
         for recipient in self.processes:
             if recipient.process_id != self.process_id:
                 self.send_message(recipient, "Alive")
+
+if __name__ == "__main__":
+
+    def simulate():
+        num_processes = 5
+        processes = []
+
+        for i in range(1, num_processes + 1):
+            p = BullyProcess(i, processes)
+            processes.append(p)
+
+        # Start all processes
+        for p in processes:
+            p.start()
+
+
+    simulate()

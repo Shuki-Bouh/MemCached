@@ -28,6 +28,7 @@ class Process(threading.Thread):
             if self.en_attente_de_leader: # Donc on a arrêté notre élection et on attend le message du grand leader
                 leader = client.get("Elu")
                 if leader is not None:
+                    leader = pickle.loads(leader)
                     leader = int(leader)
                     if leader != self.leader: # On regarde si le leader a changé (sinon le message n'a pas encore été mis à jour)
                         self.leader = leader # On peut enfin mettre à jour le leader
@@ -40,7 +41,7 @@ class Process(threading.Thread):
                     self.count_alive += 1  # On rappelle qu'on est vivant
                     client.set("Alive", str(self.count_alive))
                     self.clock = 0
-                elif pickle.loads(client.get("Alive")) is not None:
+                elif client.get("Alive") is not None:
                     if int(pickle.loads(client.get("Alive"))) > self.previous_alive: # Si cette condition n'est pas vérifiée,
                         self.clock = 0  # cela signifie que le leader ne met plus à jour le Alive message donc il est probablement mort.
                 if self.clock > Process.clock_max and not self.en_election:  # Si 5 secondes se sont écoulées, on considère le leader comme mort
@@ -53,7 +54,7 @@ class Process(threading.Thread):
     def election(self):
         self.en_election = True # On est candidat
         self.clock = 0  # On remet la clock à 0
-        msg = pickle.loads(client.get("Election"))
+        msg = client.get("Election")
         if msg is not None: # Si quelqu'un est déjà en train de se faire élire, on abandonne
             self.en_election = False
             self.en_attente_de_leader = True # On attend qu'il soit réellement élu
@@ -70,3 +71,20 @@ class Process(threading.Thread):
                 client.delete("Election")  # Plus personne n'est en élection
                 self.previous_alive = 0 # On se réinitialise
                 self.count_alive = 0
+
+if __name__ == "__main__":
+    client.flush_all()
+    def simulate():
+        num_processes = 5
+        processes = []
+
+        for i in range(1, num_processes + 1):
+            p = Process(i)
+            processes.append(p)
+
+        # Start all processes
+        for p in processes:
+            p.start()
+
+
+    simulate()
